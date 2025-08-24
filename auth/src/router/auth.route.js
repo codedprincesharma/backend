@@ -3,7 +3,7 @@ const authRoute = express.Router()
 const userModal = require('../models/user.model')
 const jwt = require('jsonwebtoken')
 
-//register 
+//register
 authRoute.post('/register', async (req, res) => {
   const { username, passward } = req.body
 
@@ -11,14 +11,22 @@ authRoute.post('/register', async (req, res) => {
     username, passward
   })
 
+  const token = jwt.sign({
+    id: user._id,
+
+  }, process.env.JWT_SECRET)
+
+
   res.status(201).json({
-    message: "user registerd", user
+    message: "user registerd",
+    user,
+    token
   })
 })
 
 //login
 authRoute.post('/login', async (req, res) => {
-  const { username,passward } = req.body
+  const { username, passward } = req.body
   const isUserExist = await userModal.findOne({
     username: username
   })
@@ -28,14 +36,16 @@ authRoute.post('/login', async (req, res) => {
       message: "user account not found [invalid username]"
     })
   }
+
   const isPasswardValid = passward == isUserExist.passward
-  if(!isPasswardValid){
+  if (!isPasswardValid) {
     res.status(401).json({
-      message:"passward invalid"
+      message: "passward invalid"
     })
   }
   res.status(201).json({
-    message:"user login"
+    message: "user login"
   })
 })
+
 module.exports = authRoute
