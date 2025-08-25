@@ -7,6 +7,13 @@ const jwt = require('jsonwebtoken')
 authRoute.post('/register', async (req, res) => {
   try {
     const { username, password } = req.body
+    const isUserExist = await userModal.findOne({ username })
+    if (isUserExist) {
+      return res.status(400).json({
+        message: "username is already exist"
+      })
+    }
+
     const user = await userModal.create({
       username, password
     })
@@ -53,24 +60,27 @@ authRoute.post('/login', async (req, res) => {
 })
 
 //user
-
 authRoute.get('/user', async (req, res) => {
+  const { token } = req.body
+  if (!token) {
+    return res.status(401).json({ message: 'Unauthorized, no token' });
+  }
   try {
-    const { token } = req.body
+    const decoded = jwt.verify(token, process.env.JWT_SECRET)
+    const user = await userModal.findOne({
+      _id: decoded.id
+    }).select("-password -__v").lean()
 
-    if (!token) {
-      return res.status(401).json({
-        message: "unauthorized"
-      })
-    }
+    res.status(200).json({
+      message:"user data fatch succesfully",
+      user
+    })
+
   } catch (error) {
-    res.status(500).json({
-      message: "server error",
-      error
+    return res.status(401).json({
+      message: "unauthrized - [invalid token]"
     })
   }
-
-
 })
 
 module.exports = authRoute
