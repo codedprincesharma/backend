@@ -13,18 +13,17 @@ authRoute.post('/register', async (req, res) => {
         message: "username is already exist"
       })
     }
-
     const user = await userModal.create({
       username, password
     })
     const token = jwt.sign({
       id: user._id,
     }, process.env.JWT_SECRET)
+    res.cookie("token", token)
 
     res.status(201).json({
       message: "user registerd",
       user,
-      token
     })
   } catch (error) {
     res.status(500).json({ message: "server error", error })
@@ -61,7 +60,7 @@ authRoute.post('/login', async (req, res) => {
 
 //user
 authRoute.get('/user', async (req, res) => {
-  const { token } = req.body
+  const { token } = req.cookies
   if (!token) {
     return res.status(401).json({ message: 'Unauthorized, no token' });
   }
