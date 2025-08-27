@@ -5,29 +5,27 @@ const jwt = require('jsonwebtoken')
 
 //register
 authRoute.post('/register', async (req, res) => {
-  try {
-    const { username, password } = req.body
-    const isUserExist = await userModal.findOne({ username })
-    if (isUserExist) {
-      return res.status(400).json({
-        message: "username is already exist"
-      })
-    }
-    const user = await userModal.create({
-      username, password
-    })
-    const token = jwt.sign({
-      id: user._id,
-    }, process.env.JWT_SECRET)
-    res.cookie("token", token)
 
-    res.status(201).json({
-      message: "user registerd",
-      user,
+  const { username, password } = req.body
+  const isUserExist = await userModal.findOne({ username })
+  if (isUserExist) {
+    return res.status(400).json({
+      message: "username is already exist"
     })
-  } catch (error) {
-    res.status(500).json({ message: "server error", error })
   }
+  const user = await userModal.create({
+    username, password
+  })
+  const token = jwt.sign({
+    id: user._id,
+  }, process.env.JWT_SECRET)
+  res.cookie("token", token)
+
+  res.status(201).json({
+    message: "user registerd",
+    user,
+  })
+
 })
 
 //Login
@@ -71,7 +69,7 @@ authRoute.get('/user', async (req, res) => {
     }).select("-password -__v").lean()
 
     res.status(200).json({
-      message:"user data fatch succesfully",
+      message: "user data fatch succesfully",
       user
     })
 
